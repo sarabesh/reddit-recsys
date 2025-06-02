@@ -1,7 +1,7 @@
 import os
 import torch
 import clip
-import config
+import config as config
 import pandas as pd
 import numpy as np
 from PIL import Image

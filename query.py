@@ -1,7 +1,7 @@
 import torch
 import clip
 from PIL import Image
-import config
+import scripts.config as config
 from qdrant_client import QdrantClient
 import matplotlib.pyplot as plt
 import numpy as np

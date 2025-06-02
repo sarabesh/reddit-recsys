@@ -3,7 +3,8 @@ import requests
 import re
 import os
 import csv
-import config
+
+import scripts.config as config
 
 # --- Connect to Reddit ---
 print(f"🔗 Connecting to Reddit API with user agent: {config.REDDIT_USER_AGENT}")
