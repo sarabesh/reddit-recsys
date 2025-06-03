@@ -37,9 +37,9 @@ with DAG(
         python_callable=lambda: run_script("featurize.py"),
     )
 
-    upload_task = PythonOperator(
-        task_id="upload_to_qdrant",
-        python_callable=lambda: run_script("upload_qdrant.py"),
-    )
+    # upload_task = PythonOperator(
+    #     task_id="upload_to_qdrant",
+    #     python_callable=lambda: run_script("upload_qdrant.py"),
+    # )
 
-    ingest_task >> featurize_task >> upload_task
+    ingest_task >> featurize_task

@@ -3,8 +3,9 @@ import requests
 import re
 import os
 import csv
-
-import scripts.config as config
+import boto3
+from botocore.config import Config
+import config as config
 
 # --- Connect to Reddit ---
 print(f"🔗 Connecting to Reddit API with user agent: {config.REDDIT_USER_AGENT}")
@@ -13,6 +14,28 @@ r = praw.Reddit(
     client_secret=config.REDDIT_CLIENT_SECRET,
     user_agent=config.REDDIT_USER_AGENT,
 )
+
+# --- R2 Config ---
+R2_ACCESS_KEY_ID = config.R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY = config.R2_SECRET_ACCESS_KEY
+R2_ENDPOINT_URL = config.R2_ENDPOINT_URL
+R2_BUCKET_NAME = config.R2_BUCKET_NAME
+
+# --- Init R2 Client ---
+r2 = boto3.client(
+    "s3",
+    endpoint_url=R2_ENDPOINT_URL,
+    aws_access_key_id=R2_ACCESS_KEY_ID,
+    aws_secret_access_key=R2_SECRET_ACCESS_KEY
+)
+
+def upload_to_r2(local_path, object_name):
+    object_name = object_name.replace("\\", "/")  # Ensure correct path format for R2
+    try:
+        r2.upload_file(local_path, R2_BUCKET_NAME, object_name)
+        print(f"☁️  Uploaded to R2 → {object_name}")
+    except Exception as e:
+        print(f"❌ R2 upload failed: {e}")
 
 # --- Subreddits to scrape ---
 subreddits = [
@@ -76,6 +99,9 @@ for sub_name in subreddits:
                 f.write(response.content)
             downloaded += 1
             print(f"✅ Downloaded: {rel_path}")
+
+            # Upload to R2
+            upload_to_r2(full_path, rel_path)
 
             # Write row to CSV
             csv_writer.writerow([rel_path, post.title, sub_name])

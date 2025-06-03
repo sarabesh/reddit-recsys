@@ -18,3 +18,9 @@ COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 
 # --- Image Storage ---
 IMAGE_DIR = os.getenv("IMAGE_DIR")
+
+# --- R2 Config ---
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID")
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY")
+R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL")
+R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME")
