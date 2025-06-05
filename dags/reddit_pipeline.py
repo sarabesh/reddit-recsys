@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 host_volume = k8s.V1Volume(
     name="host-volume",
     host_path=k8s.V1HostPathVolumeSource(
-        path="host/projects/recsys1/data",
+        path="/data",
         type="Directory"
     )
 )
