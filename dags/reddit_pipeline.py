@@ -13,20 +13,6 @@ def run_script(script_name):
         raise RuntimeError(f"Error running {script_name}: {result.stderr}")
     print(result.stdout)
 
-# Define volume and volume_mount using dict-style config
-host_volume = {
-    'name': 'host-volume',
-    'hostPath': {
-        'path': '/data',
-        'type': 'Directory'
-    }
-}
-
-host_volume_mount = {
-    'name': 'host-volume',
-    'mountPath': '/hostdata',
-    'readOnly': False
-}
 
 with DAG(
     "reddit_pipeline",
@@ -46,28 +32,38 @@ with DAG(
         task_id="ingest_reddit_images",
         namespace="default",
         name="ingest-reddit-images",
-        image="python:3.11-slim",  # Use a lightweight Python image
-        cmds=["python", "-u", "/scripts/reddit_ingest.py"],
-        volumes=[host_volume],
-        volume_mounts=[host_volume_mount],
+        image="python:3.11-slim",
+        cmds=["python", "-u", "/hostdata/scripts/reddit_ingest.py"],
+        volumes=[{
+            "name": "host-volume",
+            "hostPath": {"path": "/data", "type": "Directory"}
+        }],
+        volume_mounts=[{
+            "name": "host-volume",
+            "mountPath": "/hostdata",
+            "readOnly": False
+        }],
         is_delete_operator_pod=True,
-       
+        get_logs=True,
     )
 
     featurize_task = KubernetesPodOperator(
         task_id="featurize_clip_embeddings",
         namespace="default",
         name="featurize-clip-embeddings",
-        image="python:3.11-slim",  # Use a lightweight Python image
-        cmds=["python", "-u", "/scripts/featurize.py"],
-        volumes=[host_volume],
-        volume_mounts=[host_volume_mount],
+        image="python:3.11-slim",
+        cmds=["python", "-u", "/hostdata/scripts/featurize.py"],
+        volumes=[{
+            "name": "host-volume",
+            "hostPath": {"path": "/data", "type": "Directory"}
+        }],
+        volume_mounts=[{
+            "name": "host-volume",
+            "mountPath": "/hostdata",
+            "readOnly": False
+        }],
         is_delete_operator_pod=True,
+        get_logs=True,
     )
-
-    # upload_task = PythonOperator(
-    #     task_id="upload_to_qdrant",
-    #     python_callable=lambda: run_script("upload_qdrant.py"),
-    # )
 
     ingest_task >> featurize_task
