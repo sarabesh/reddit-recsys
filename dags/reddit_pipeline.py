@@ -34,7 +34,7 @@ with DAG(
 
     ingest_task = KubernetesPodOperator(
         task_id="ingest_reddit_images",
-        namespace="default",
+        namespace="airflow",
         name="ingest-reddit-images",
         image="python:3.11-slim",
         cmds=["python", "-u", "/hostdata/scripts/reddit_ingest.py"],
@@ -46,7 +46,7 @@ with DAG(
 
     featurize_task = KubernetesPodOperator(
         task_id="featurize_clip_embeddings",
-        namespace="default",
+        namespace="airflow",
         name="featurize-clip-embeddings",
         image="python:3.11-slim",
         cmds=["python", "-u", "/hostdata/scripts/featurize.py"],
