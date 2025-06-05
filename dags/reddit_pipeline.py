@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 host_volume = k8s.V1Volume(
     name="host-volume",
     host_path=k8s.V1HostPathVolumeSource(
-        path="Z:\projects\recsys1\data",
+        path="host/projects/recsys1/data",
         type="Directory"
     )
 )
@@ -38,7 +38,7 @@ with DAG(
         name="ingest-reddit-images",
         image="python:3.11-slim",
         cmds=["python", "-u", "/hostdata/scripts/reddit_ingest.py"],
-        startup_timeout_seconds=1300,
+        startup_timeout_seconds=300,
         volumes=[host_volume],
         volume_mounts=[host_volume_mount],
         is_delete_operator_pod=True,
@@ -52,7 +52,7 @@ with DAG(
         image="python:3.11-slim",
         cmds=["python", "-u", "/hostdata/scripts/featurize.py"],
         volumes=[host_volume],
-        startup_timeout_seconds=1300,
+        startup_timeout_seconds=300,
         volume_mounts=[host_volume_mount],
         is_delete_operator_pod=True,
         get_logs=True,
