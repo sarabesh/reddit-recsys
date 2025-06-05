@@ -7,14 +7,14 @@ from datetime import datetime, timedelta
 host_volume = k8s.V1Volume(
     name="host-volume",
     host_path=k8s.V1HostPathVolumeSource(
-        path="/data",
+        path="/project",
         type="Directory"
     )
 )
 
 host_volume_mount = k8s.V1VolumeMount(
     name="host-volume",
-    mount_path="/hostdata",
+    mount_path="/project",
     read_only=False
 )
 
@@ -37,7 +37,10 @@ with DAG(
         namespace="airflow",
         name="ingest-reddit-images",
         image="python:3.11-slim",
-        cmds=["python", "-u", "/hostdata/scripts/reddit_ingest.py"],
+        cmds=["sh", "-c"],
+        arguments=[
+        "pip install -r /project/requirements.txt && python -u /project/scripts/reddit_ingest.py"
+        ],
         startup_timeout_seconds=300,
         volumes=[host_volume],
         volume_mounts=[host_volume_mount],
@@ -50,7 +53,10 @@ with DAG(
         namespace="airflow",
         name="featurize-clip-embeddings",
         image="python:3.11-slim",
-        cmds=["python", "-u", "/hostdata/scripts/featurize.py"],
+        cmds=["sh", "-c"],
+        arguments=[
+            "pip install -r /project/requirements.txt && python -u /project/scripts/featurize.py"
+        ],
         volumes=[host_volume],
         startup_timeout_seconds=300,
         volume_mounts=[host_volume_mount],
