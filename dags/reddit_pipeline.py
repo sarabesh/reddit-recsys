@@ -1,29 +1,33 @@
 from airflow import DAG
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
+from kubernetes.client import models as k8s
 from datetime import datetime, timedelta
-import subprocess
-import os
 
+# Define hostPath volume and mount properly
+host_volume = k8s.V1Volume(
+    name="host-volume",
+    host_path=k8s.V1HostPathVolumeSource(
+        path="/data",
+        type="Directory"
+    )
+)
 
-def run_script(script_name):
-    """Generic wrapper to call a Python script inside scripts/"""
-    script_path = os.path.join(os.path.dirname(__file__), "..", "scripts", script_name)
-    result = subprocess.run(["python", script_path], capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"Error running {script_name}: {result.stderr}")
-    print(result.stdout)
-
+host_volume_mount = k8s.V1VolumeMount(
+    name="host-volume",
+    mount_path="/hostdata",
+    read_only=False
+)
 
 with DAG(
     "reddit_pipeline",
     default_args={
-    "owner": "airflow",
-    "depends_on_past": False,
-    "retries": 1,
-    "retry_delay": timedelta(minutes=5),
+        "owner": "airflow",
+        "depends_on_past": False,
+        "retries": 1,
+        "retry_delay": timedelta(minutes=5),
     },
     start_date=datetime(2024, 1, 1),
-    schedule_interval=timedelta(hours=1), # Runs every hour
+    schedule_interval=timedelta(hours=1),
     catchup=False,
     tags=["reddit", "clip", "qdrant"],
 ) as dag:
@@ -34,15 +38,8 @@ with DAG(
         name="ingest-reddit-images",
         image="python:3.11-slim",
         cmds=["python", "-u", "/hostdata/scripts/reddit_ingest.py"],
-        volumes=[{
-            "name": "host-volume",
-            "hostPath": {"path": "/data", "type": "Directory"}
-        }],
-        volume_mounts=[{
-            "name": "host-volume",
-            "mountPath": "/hostdata",
-            "readOnly": False
-        }],
+        volumes=[host_volume],
+        volume_mounts=[host_volume_mount],
         is_delete_operator_pod=True,
         get_logs=True,
     )
@@ -53,15 +50,8 @@ with DAG(
         name="featurize-clip-embeddings",
         image="python:3.11-slim",
         cmds=["python", "-u", "/hostdata/scripts/featurize.py"],
-        volumes=[{
-            "name": "host-volume",
-            "hostPath": {"path": "/data", "type": "Directory"}
-        }],
-        volume_mounts=[{
-            "name": "host-volume",
-            "mountPath": "/hostdata",
-            "readOnly": False
-        }],
+        volumes=[host_volume],
+        volume_mounts=[host_volume_mount],
         is_delete_operator_pod=True,
         get_logs=True,
     )
