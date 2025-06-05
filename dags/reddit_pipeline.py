@@ -14,7 +14,7 @@ host_volume = k8s.V1Volume(
 
 host_volume_mount = k8s.V1VolumeMount(
     name="host-volume",
-    mount_path="/project",
+    mount_path="/host",
     read_only=False
 )
 
@@ -39,7 +39,7 @@ with DAG(
         image="python:3.11-slim",
         cmds=["sh", "-c"],
         arguments=[
-        "pip install -r /project/requirements.txt && python -u /project/scripts/reddit_ingest.py"
+        "pip install -r /host/requirements.txt && python -u /host/scripts/reddit_ingest.py"
         ],
         startup_timeout_seconds=300,
         volumes=[host_volume],
@@ -55,7 +55,7 @@ with DAG(
         image="python:3.11-slim",
         cmds=["sh", "-c"],
         arguments=[
-            "pip install -r /project/requirements.txt && python -u /project/scripts/featurize.py"
+            "pip install -r /host/requirements.txt && python -u /host/scripts/featurize.py"
         ],
         volumes=[host_volume],
         startup_timeout_seconds=300,
