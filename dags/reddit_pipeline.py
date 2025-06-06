@@ -41,7 +41,7 @@ with DAG(
         arguments=[
         "python -U /host/scripts/reddit_ingest.py"
         ],
-        startup_timeout_seconds=300,
+        startup_timeout_seconds=1600,
         volumes=[host_volume],
         volume_mounts=[host_volume_mount],
         is_delete_operator_pod=True,
@@ -58,7 +58,7 @@ with DAG(
             "python -u /host/scripts/featurize.py"
         ],
         volumes=[host_volume],
-        startup_timeout_seconds=300,
+        startup_timeout_seconds=1600,
         volume_mounts=[host_volume_mount],
         is_delete_operator_pod=True,
         get_logs=True,
