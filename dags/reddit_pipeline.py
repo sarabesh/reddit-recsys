@@ -36,10 +36,10 @@ with DAG(
         task_id="ingest_reddit_images",
         namespace="airflow",
         name="ingest-reddit-images",
-        image="python:3.11-slim",
+        image="whitewolfie/recsys-worker:latest",
         cmds=["sh", "-c"],
         arguments=[
-        "pip install -r /host/requirements.txt && python -u /host/scripts/reddit_ingest.py"
+        "python -U /host/scripts/reddit_ingest.py"
         ],
         startup_timeout_seconds=300,
         volumes=[host_volume],
@@ -55,7 +55,7 @@ with DAG(
         image="python:3.11-slim",
         cmds=["sh", "-c"],
         arguments=[
-            "pip install -r /host/requirements.txt && python -u /host/scripts/featurize.py"
+            "python -u /host/scripts/featurize.py"
         ],
         volumes=[host_volume],
         startup_timeout_seconds=300,
